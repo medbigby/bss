@@ -1,0 +1,301 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect" />
+    <link as="style" href="https://fonts.googleapis.com/css2?family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&family=Spline+Sans%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <title>Détails du Plat</title>
+    <link href="data:image/x-icon;base64," rel="icon" type="image/x-icon" />
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+
+    <style type="text/tailwindcss">
+      :root {
+        --primary-color: #f07167;
+      }
+    </style>
+    <style>
+      body {
+        height: 100dvh;
+      }
+      #ar-scene {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 9999;
+          visibility: hidden;
+      }
+      #ar-scene.active {
+          visibility: visible;
+      }
+      #notification {
+          position: fixed;
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 12px 24px;
+          background-color: var(--primary-color);
+          color: #111714;
+          border-radius: 9999px;
+          font-weight: bold;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          z-index: 10000;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+      }
+      #notification.show {
+          opacity: 1;
+          visibility: visible;
+      }
+    </style>
+</head>
+<body class="bg-[#111714]">
+    <div class="relative flex size-full h-screen flex-col group/design-root overflow-hidden" style='font-family: "Spline Sans", "Noto Sans", sans-serif;'>
+      <div class="flex flex-col">
+        <div class="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
+          <button class="bg-black/30 backdrop-blur-sm rounded-full p-2 text-white" onclick="window.history.back()">
+            <span class="material-symbols-outlined"> arrow_back </span>
+          </button>
+          <button class="bg-black/30 backdrop-blur-sm rounded-full p-2 text-white">
+            <span class="material-symbols-outlined"> favorite_border </span>
+          </button>
+        </div>
+        <div class="relative h-48 sm:h-64 md:h-96 w-full">
+          <img alt="Plat Principal" class="absolute inset-0 h-full w-full object-cover" src="https://i.imgur.com/Um0f7gw.jpeg" />
+          <div class="absolute inset-0 bg-gradient-to-t from-[#111714] to-transparent"></div>
+        </div>
+        <div class="flex flex-col gap-6 p-6 -mt-8 sm:-mt-12 md:-mt-16 relative z-10">
+          <div class="flex items-start justify-between">
+            <div class="flex flex-col gap-2">
+              <h1 class="text-3xl font-bold text-white menu-item-name">Pizza</h1>
+              <p class="text-lg text-gray-400">pizza fruits de mer</p>
+            </div>
+            <p class="text-3xl font-bold text-white menu-item-price">900 dzd</p>
+          </div>
+          <div class="flex flex-col gap-4">
+            <p class="text-base text-gray-300">
+              une pizza classique avec une sauce tomate riche, du fromage fondant et une variété de garnitures fraîches.
+            </p>
+            <div>
+              <h3 class="text-lg font-bold text-white mb-2">Ingredients</h3>
+              <p class="text-base text-gray-400"> sauce tomate , fromage ,crevette anchois ,calamar ,moules</p>
+            </div>
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-bold text-white">Quantity</h3>
+              <div class="flex items-center gap-4 text-white">
+                <button class="flex h-8 w-8 items-center justify-center rounded-full bg-[#29382f] text-lg font-bold">-</button>
+                <span class="text-xl font-bold">1</span>
+                <button class="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--primary-color)] text-[#111714] text-lg font-bold">+</button>
+              </div>
+            </div>
+            
+            <button id="ar-button" class="flex w-full items-center justify-center rounded-full bg-[#fffd74] py-4 text-lg font-bold text-black mt-4">
+              Voir en Réalité Augmentée
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="sticky bottom-0 bg-[#111714] p-4">
+        <button id="add-to-cart-button" class="flex w-full items-center justify-center rounded-full bg-[var(--primary-color)] py-4 text-lg font-bold text-[#111714]">Add to Cart</button>
+      </div>
+    </div>
+  
+    <div id="notification"></div>
+
+    <a-scene id="ar-scene"
+              webxr="optionalFeatures: hit-test,local-floor"
+              vr-mode-ui="enabled: false"
+              ar-modes="webxr">
+
+      <a-assets>
+        <a-gltf-model id="my-food-model" src="{% static 'models/Pizza.glb' %}" scale="0.5 0.5 0.5"></a-gltf-model>
+      </a-assets>
+
+      <a-camera position="0 1.6 0"></a-camera>
+
+      <a-light type="ambient" color="white" intensity="1"></a-light>
+
+      <!-- Reticle to indicate where the object will be placed -->
+      <a-entity id="reticle"
+                 visible="false">
+          <a-ring rotation="-90 0 0" radius-inner="0.01" radius-outer="0.02" color="lightblue"></a-ring>
+      </a-entity>
+
+      <!-- The pizza model, initially invisible -->
+      <a-entity id="pizza-model" gltf-model="#my-food-model" visible="false"></a-entity>
+
+      <!-- Test cube to verify A-Frame is working -->
+      <a-box id="test-cube" position="0 0 -2" color="red" visible="false"></a-box>
+
+    </a-scene>
+
+    <div id="dom-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; display: none; pointer-events: none;">
+        <button id="place-button" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background-color: #fff; border: none; border-radius: 4px; font-size: 16px; color: #333; display: none; pointer-events: auto;">Place Pizza</button>
+    </div>
+
+    <script>
+    function showMessage(message, isSuccess) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.style.backgroundColor = isSuccess ? 'var(--primary-color)' : '#dc2626'; // Rouge pour l'erreur
+        notification.classList.add('show');
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        const arButton = document.getElementById('ar-button');
+        const arScene = document.getElementById('ar-scene');
+        const domOverlay = document.getElementById('dom-overlay');
+        const placeButton = document.getElementById('place-button');
+        const reticle = document.getElementById('reticle');
+        const pizzaModel = document.getElementById('pizza-model');
+        const testCube = document.getElementById('test-cube');
+        let modelPlaced = false;
+
+        // Add logging for model loading
+        pizzaModel.addEventListener('model-loaded', () => {
+            console.log('Pizza model loaded successfully');
+        });
+        pizzaModel.addEventListener('model-error', (e) => {
+            console.error('Failed to load pizza model:', e.detail);
+        });
+
+        // Add logging for asset loading
+        const pizzaAsset = document.getElementById('my-food-model');
+        pizzaAsset.addEventListener('loaded', () => {
+            console.log('Pizza asset loaded');
+        });
+        pizzaAsset.addEventListener('error', (e) => {
+            console.error('Failed to load pizza asset:', e.detail);
+        });
+
+        // Add logging for AR scene
+        arScene.addEventListener('loaded', () => {
+            console.log('AR scene loaded');
+        });
+
+        if (arButton && arScene) {
+            arButton.addEventListener('click', () => {
+                console.log('Attempting to enter AR mode');
+                arScene.classList.add('active');
+                domOverlay.style.display = 'block';
+                arScene.enterAR().catch((err) => {
+                    console.error("Failed to enter AR mode:", err);
+                    arScene.classList.remove('active');
+                    domOverlay.style.display = 'none';
+                });
+            });
+
+            arScene.addEventListener('enter-vr', () => {
+                console.log('VR/AR mode entered successfully');
+                console.log('Auto-placing pizza model');
+                const modelPosition = { x: 0, y: 0, z: -2 };
+                pizzaModel.setAttribute('position', modelPosition);
+                pizzaModel.setAttribute('visible', 'true');
+                console.log('Pizza auto-placed at:', modelPosition);
+                modelPlaced = true;
+            });
+
+            arScene.addEventListener('exit-vr', () => {
+                arScene.classList.remove('active');
+                domOverlay.style.display = 'none';
+                placeButton.style.display = 'none';
+                reticle.setAttribute('visible', 'false');
+                pizzaModel.setAttribute('visible', 'false');
+                testCube.setAttribute('visible', 'false');
+                modelPlaced = false;
+            });
+
+            placeButton.addEventListener('click', () => {
+                console.log('Place button clicked');
+                console.log('Reticle visible:', reticle.getAttribute('visible'));
+                console.log('Pizza model before placement:', pizzaModel.getAttribute('visible'), pizzaModel.getAttribute('position'));
+                if (reticle.getAttribute('visible')) {
+                    // Hit-test is available, use reticle position
+                    const position = reticle.getAttribute('position');
+                    console.log('Placing pizza at reticle position:', position);
+                    pizzaModel.setAttribute('position', position);
+                    pizzaModel.setAttribute('visible', 'true');
+                    console.log('Pizza model should now be visible at:', position);
+                    placeButton.style.display = 'none';
+                    reticle.setAttribute('visible', 'false');
+                    modelPlaced = true;
+                } else {
+                    // Hit-test not available, use fallback position
+                    console.log('Using fallback position for pizza placement');
+                    const modelPosition = { x: 0, y: 0, z: -2 };
+                    pizzaModel.setAttribute('position', modelPosition);
+                    pizzaModel.setAttribute('visible', 'true');
+                    console.log('Pizza placed at fallback position:', modelPosition);
+                    placeButton.style.display = 'none';
+                    modelPlaced = true;
+                }
+                console.log('Pizza model after placement:', pizzaModel.getAttribute('visible'), pizzaModel.getAttribute('position'));
+                console.log('Scene children after placement:', arScene.children);
+            });
+        }
+    });
+
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const addToCartButton = document.getElementById('add-to-cart-button');
+
+        if (addToCartButton) {
+            addToCartButton.addEventListener('click', function(event) {
+                event.preventDefault(); // Empêche le rechargement de la page
+
+                // Récupérez les données du plat (à adapter selon votre HTML)
+                const itemName = document.querySelector('.menu-item-name').textContent;
+                const itemPrice = document.querySelector('.menu-item-price').textContent;
+                const quantity = 1; // Ou récupérez la quantité si l'utilisateur peut la modifier
+
+                const orderData = {
+                    item: itemName,
+                    price: itemPrice,
+                    quantity: quantity,
+                    status: 'to prepare',
+                    NBT: 1,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Envoyez les données à une nouvelle URL Django via une requête POST
+                fetch('/api/add-order/', { 
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(orderData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                    if (data.success) {
+                        showMessage('Commande ajoutée au panier !', true);
+                    } else {
+                        showMessage('Erreur lors de l\'ajout de la commande.', false);
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    showMessage('Une erreur est survenue lors de l\'ajout de la commande.', false);
+                });
+            });
+        }
+    });
+
+
+  </script>
+</body>
+</html>
