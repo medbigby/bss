@@ -1,21 +1,25 @@
 import os
 import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import db
-from pathlib import Path
+from firebase_admin import credentials, db
 
-# Obtenir le chemin du dossier actuel (appfood) de manière absolue
-BASE_DIR = Path(__file__).resolve().parent
+# Construire credentials depuis variables d'environnement
+cred_dict = {
+    "type": os.environ.get("FIREBASE_TYPE"),
+    "project_id": os.environ.get("FIREBASE_PROJECT_ID"),
+    "private_key_id": os.environ.get("FIREBASE_PRIVATE_KEY_ID"),
+    "private_key": os.environ.get("FIREBASE_PRIVATE_KEY").replace("\\n", "\n"),
+    "client_email": os.environ.get("FIREBASE_CLIENT_EMAIL"),
+    "token_uri": "https://oauth2.googleapis.com/token",
+}
 
-# Construire le chemin complet vers le fichier firebase_key.json
-# Cela garantit que le chemin est correct, peu importe où le serveur est lancé
-CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase_key.json')
+# Initialiser Firebase seulement si pas déjà fait
+if not firebase_admin._apps:
+    cred = credentials.Certificate(cred_dict)
 
-# Initialiser Firebase
-cred = credentials.Certificate(CREDENTIALS_PATH)
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://bssfood-7eeec-default-rtdb.europe-west1.firebasedatabase.app/'
-})
+    firebase_admin.initialize_app(cred, {
+        "databaseURL": os.environ.get("FIREBASE_DATABASE_URL")
+    })
+
 db_ref = db.reference()
 
 def get_firebase_db():
